@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live</title>
     <link rel="stylesheet" href="css/live.css">
+    <!-- TensorFlow.js and BlazeFace -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
 </head>
 
 <body>
@@ -15,6 +18,7 @@
         <span class="heart-counter">0 ❤️</span>
     </div>
     <video id="video" autoplay playsinline></video>
+    <canvas id="overlay-canvas"></canvas>
 
     <div class="floating-hearts-container"></div>
 

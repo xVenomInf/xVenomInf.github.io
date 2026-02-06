@@ -13,7 +13,20 @@ video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /*transform: scaleX(-1); /* Mirror the camera for a selfie view */
+    transform: scaleX(-1);
+    /* Mirror the camera for a selfie view */
+}
+
+#overlay-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 5;
+    /* Below UI overlay but above video */
 }
 
 .overlay {

@@ -99,18 +99,156 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Camera
     const video = document.getElementById('video');
+    const canvas = document.getElementById('overlay-canvas');
+    const context = canvas ? canvas.getContext('2d') : null;
+
     async function startCamera() {
         try {
+            // Note: tracking.js handles the camera stream usually, but we are manually handling it
+            // for custom UI structure. tracking.js can attach to the video element.
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "user" }
             });
             if (video) {
                 video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    startTracking();
+                };
             }
         } catch (error) {
             console.error("Error accessing the camera:", error);
         }
     }
+
+    async function startTracking() {
+        if (!video || !canvas || !context) return;
+
+        // Match canvas size to video size
+        const updateCanvasSize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        updateCanvasSize();
+        window.addEventListener('resize', updateCanvasSize);
+
+        let model = null;
+        try {
+            console.log("Loading BlazeFace...");
+            model = await blazeface.load();
+            console.log("BlazeFace loaded.");
+        } catch (err) {
+            console.error("Error loading BlazeFace:", err);
+            return;
+        }
+
+        // Smoothing variables
+        let lastRect = null;
+        let persistenceFrames = 0;
+        const maxPersistence = 20; // ~2 seconds at 100ms interval
+        const smoothingFactor = 0.5;
+
+        // Detection loop
+        setInterval(async () => {
+            if (!model || video.readyState < 2) return;
+
+            // Estimate faces
+            const returnTensors = false;
+            const predictions = await model.estimateFaces(video, returnTensors);
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (predictions.length > 0) {
+                // Determine the best face (e.g., largest area or probability)
+                // BlazeFace usually returns high confidence. We'll take the first one.
+                const pred = predictions[0];
+                const start = pred.topLeft;
+                const end = pred.bottomRight;
+                // pred.probability is also available
+
+                const faceWidth = end[0] - start[0];
+                const faceHeight = end[1] - start[1];
+                const rawRect = {
+                    x: start[0],
+                    y: start[1],
+                    width: faceWidth,
+                    height: faceHeight
+                };
+
+                // Coordinate Mapping for object-fit: cover
+                const vidW = video.videoWidth;
+                const vidH = video.videoHeight;
+                const screenW = canvas.width;
+                const screenH = canvas.height;
+
+                const scale = Math.max(screenW / vidW, screenH / vidH);
+                const xOffset = (screenW - vidW * scale) / 2;
+                const yOffset = (screenH - vidH * scale) / 2;
+
+                // Scale and Offset
+                const scaledWidth = rawRect.width * scale;
+                const scaledHeight = rawRect.height * scale;
+                const unmirroredX = rawRect.x * scale + xOffset;
+                // const scaledY = rawRect.y * scale + yOffset;
+
+                // Mirror logic (Css has scaleX(-1))
+                // Flip X relative to screen width
+                const mirroredX = screenW - unmirroredX - scaledWidth;
+
+                const targetRect = {
+                    x: mirroredX,
+                    y: rawRect.y * scale + yOffset,
+                    width: scaledWidth,
+                    height: scaledHeight
+                };
+
+                // Smoothing
+                if (lastRect) {
+                    lastRect.x += (targetRect.x - lastRect.x) * smoothingFactor;
+                    lastRect.y += (targetRect.y - lastRect.y) * smoothingFactor;
+                    lastRect.width += (targetRect.width - lastRect.width) * smoothingFactor;
+                    lastRect.height += (targetRect.height - lastRect.height) * smoothingFactor;
+                    persistenceFrames = maxPersistence;
+                } else {
+                    lastRect = targetRect;
+                    persistenceFrames = maxPersistence;
+                }
+
+                drawFaceRect(lastRect, false);
+
+            } else {
+                // No face detected
+                if (persistenceFrames > 0 && lastRect) {
+                    persistenceFrames--;
+                    drawFaceRect(lastRect, true);
+                } else {
+                    lastRect = null;
+                }
+            }
+
+        }, 100); // Check every 100ms
+
+        function drawFaceRect(rect, isPersisting) {
+            context.save();
+            if (isPersisting) {
+                context.globalAlpha = 0.5;
+                context.setLineDash([5, 5]);
+            } else {
+                context.globalAlpha = 1.0;
+                context.setLineDash([]);
+            }
+
+            context.strokeStyle = '#00ff00';
+            context.lineWidth = 3;
+            context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+
+            context.font = 'bold 16px Arial';
+            context.fillStyle = '#00ff00';
+            context.fillText('Humano', rect.x, rect.y - 10);
+            context.restore();
+        }
+    }
+
     startCamera();
 
     // Chat
