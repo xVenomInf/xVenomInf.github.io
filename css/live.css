@@ -1,0 +1,545 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: black;
+    overflow: hidden;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /*transform: scaleX(-1); /* Mirror the camera for a selfie view */
+}
+
+.overlay {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    color: white;
+    font-size: 1.5rem;
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    /* Increased gap for better spacing with heart counter */
+    z-index: 10;
+}
+
+.overlay span {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Chat Styling */
+.chat-overlay {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+    width: 300px;
+    /* Fixed width for consistency */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+}
+
+.slow-mode-indicator {
+    background-color: rgba(255, 165, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    margin-bottom: 5px;
+    align-self: flex-start;
+}
+
+.chat-message {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Slightly more transparent */
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chat-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.chat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-name {
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #e0e0e0;
+}
+
+.chat-text {
+    font-size: 0.95rem;
+}
+
+/* Floating Hearts */
+.floating-hearts-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 100px;
+    height: 300px;
+    pointer-events: none;
+    z-index: 5;
+    overflow: visible;
+}
+
+.heart {
+    position: absolute;
+    bottom: 0;
+    right: 20px;
+    /* Spawn from roughly same spot */
+    font-size: 24px;
+    color: #ff4d4d;
+    opacity: 0;
+    animation: floatUp 3s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        transform: translateY(0) scale(0.5);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-300px) scale(1.2);
+    }
+}
+
+/* --- THEMES --- */
+
+/* Facebook Theme */
+body.theme-facebook {
+    background-color: #f0f2f5;
+    /* Light background for FB context if needed, though video covers it */
+}
+
+body.theme-facebook .chat-message {
+    background-color: rgba(255, 255, 255, 0.85);
+    color: #050505;
+    border-radius: 18px;
+    margin-bottom: 5px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-facebook .chat-name {
+    color: #1877f2;
+    /* Facebook Blue */
+    font-size: 0.8rem;
+}
+
+body.theme-facebook .chat-text {
+    font-size: 0.9rem;
+    color: #050505;
+}
+
+body.theme-facebook .overlay {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Twitch Theme */
+body.theme-twitch .chat-message {
+    background-color: rgba(24, 24, 27, 0.9);
+    /* Twitch Dark */
+    border-radius: 4px;
+    /* More square */
+    padding: 4px 8px;
+    margin-bottom: 2px;
+}
+
+body.theme-twitch .chat-name {
+    color: #a970ff;
+    /* twitch purple default, logic to vary handled in JS ideally but static for now */
+    font-weight: 800;
+}
+
+body.theme-twitch .chat-text {
+    color: #efeff1;
+}
+
+body.theme-twitch .overlay span {
+    color: #a970ff;
+    /* Purple accents in overlay */
+    text-shadow: 1px 1px 0 #000;
+}
+
+body.theme-twitch .heart {
+    filter: hue-rotate(260deg);
+    /* Make hearts purple-ish */
+}
+
+/* --- TikTok Theme --- */
+.tiktok-header,
+.tiktok-viewers-rect {
+    display: none;
+    /* Default hidden */
+}
+
+body.theme-tiktok .overlay {
+    display: none;
+    /* Hide standard overlay */
+}
+
+body.theme-tiktok .tiktok-top-left-bar {
+    display: flex;
+    position: absolute;
+    top: 1%;
+    left: 1%;
+    gap: 10px;
+    align-items: center;
+    z-index: 20;
+}
+
+body.theme-tiktok .tiktok-header,
+body.theme-tiktok .tiktok-viewers-rect {
+    display: flex;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    border-radius: 30px;
+}
+
+body.theme-tiktok .tiktok-header {
+    padding: 2px 2px 2px 2px;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+}
+
+body.theme-tiktok .tiktok-viewers-rect {
+    position: absolute;
+    top: 1%;
+    right: 1%;
+    padding: 6px 14px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    z-index: 20;
+}
+
+body.theme-tiktok .tiktok-profile {
+    display: flex;
+    align-items: center;
+}
+
+body.theme-tiktok .tiktok-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0;
+}
+
+body.theme-tiktok .tiktok-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body.theme-tiktok .tiktok-username {
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.1;
+}
+
+body.theme-tiktok .tiktok-likes {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+body.theme-tiktok .tiktok-end-btn {
+    background-color: #fe2c55;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    height: 2.5em;
+}
+
+/* TikTok Chat Specifics */
+body.theme-tiktok .chat-overlay {
+    bottom: 0;
+    left: 20px;
+    width: 80%;
+    /* Wider chat area */
+    max-height: 300px;
+    mask-image: linear-gradient(to top, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 80%, transparent 100%);
+}
+
+body.theme-tiktok .chat-message {
+    background: transparent;
+    padding: 4px 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+body.theme-tiktok .chat-avatar {
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+}
+
+body.theme-tiktok .chat-name {
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 5px;
+    font-weight: 500;
+}
+
+body.theme-tiktok .chat-text {
+    font-weight: 400;
+}
+
+/* Chat Input Styling */
+.chat-input-container {
+    position: fixed;
+    bottom: 20px;
+    width: calc(100% - 60px);
+    /* Account for padding and margin */
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    padding: 8px 15px;
+    z-index: 100;
+}
+
+#chat-input {
+    background: transparent;
+    border: none;
+    color: white;
+    flex: 1;
+    font-size: 0.95rem;
+    padding: 5px 10px;
+    outline: none;
+    font-family: inherit;
+}
+
+#chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.emoji-btn,
+.send-btn {
+    cursor: pointer;
+    font-size: 1.2rem;
+    user-select: none;
+    transition: transform 0.1s;
+}
+
+.emoji-btn:active,
+.send-btn:active {
+    transform: scale(0.9);
+}
+
+.send-btn {
+    margin-left: 10px;
+    opacity: 0.8;
+}
+
+/* Adjust Chat Overlay to be above input */
+.chat-overlay {
+    bottom: 80px !important;
+    /* Move up to clear the input */
+}
+
+/* TikTok Specific Adjustments for Input */
+body.theme-tiktok .chat-input-container {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    width: calc(100% - 40px);
+}
+
+body.theme-tiktok .chat-overlay {
+    bottom: 70px !important;
+}
+
+/* Security Modal Styling */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.security-modal {
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    background: rgba(40, 40, 40, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px 20px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.modal-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.5rem;
+}
+
+.modal-header p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+.target-code {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 8px;
+    color: #fe2c55;
+    margin-bottom: 25px;
+}
+
+.modal-display {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.typed-code {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 12px;
+}
+
+.modal-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.modal-keypad button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-keypad button:active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-keypad .key-empty {
+    background: transparent;
+    cursor: default;
+}
+
+.modal-keypad .key-delete {
+    color: #ff4d4d;
+}
+
+.modal-vibrate {
+    animation: vibrate 0.3s linear;
+}
+
+@keyframes vibrate {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    50% {
+        transform: translateX(10px);
+    }
+
+    75% {
+        transform: translateX(-10px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
