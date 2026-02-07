@@ -121,6 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Mask State
+    let currentMaskIndex = 0;
+    const TOTAL_MASKS = 8; // 0:Carnival, 1:Hero, 2:Cyber, 3:Anon, 4:Hat, 5:VR, 6:Pixel, 7:None
+
+    window.switchMask = function () {
+        currentMaskIndex = (currentMaskIndex + 1) % TOTAL_MASKS;
+        console.log("Switched to mask:", currentMaskIndex);
+    };
+
     async function startTracking() {
         if (!video || !canvas || !context) return;
 
@@ -159,21 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             if (predictions.length > 0) {
-                // Determine the best face (e.g., largest area or probability)
-                // BlazeFace usually returns high confidence. We'll take the first one.
                 const pred = predictions[0];
-                const start = pred.topLeft;
-                const end = pred.bottomRight;
-                // pred.probability is also available
+                const landmarks = pred.landmarks; // [x, y] for each point
 
-                const faceWidth = end[0] - start[0];
-                const faceHeight = end[1] - start[1];
-                const rawRect = {
-                    x: start[0],
-                    y: start[1],
-                    width: faceWidth,
-                    height: faceHeight
-                };
+                // BlazeFace landmarks: 0=RightEye, 1=LeftEye, 2=Nose, 3=Mouth, 4=RightEar, 5=LeftEar
+                const rightEye = landmarks[0];
+                const leftEye = landmarks[1];
+                const nose = landmarks[2];
 
                 // Coordinate Mapping for object-fit: cover
                 const vidW = video.videoWidth;
@@ -185,67 +186,403 @@ document.addEventListener('DOMContentLoaded', () => {
                 const xOffset = (screenW - vidW * scale) / 2;
                 const yOffset = (screenH - vidH * scale) / 2;
 
-                // Scale and Offset
-                const scaledWidth = rawRect.width * scale;
-                const scaledHeight = rawRect.height * scale;
-                const unmirroredX = rawRect.x * scale + xOffset;
-                // const scaledY = rawRect.y * scale + yOffset;
-
-                // Mirror logic (Css has scaleX(-1))
-                // Flip X relative to screen width
-                const mirroredX = screenW - unmirroredX - scaledWidth;
-
-                const targetRect = {
-                    x: mirroredX,
-                    y: rawRect.y * scale + yOffset,
-                    width: scaledWidth,
-                    height: scaledHeight
+                // Function to map and mirror a point
+                const mapPoint = (p) => {
+                    const x = p[0] * scale + xOffset;
+                    const y = p[1] * scale + yOffset;
+                    // Mirror X
+                    return { x: screenW - x, y: y };
                 };
 
-                // Smoothing
+                const rEye = mapPoint(rightEye);
+                const lEye = mapPoint(leftEye);
+                const nPos = mapPoint(nose);
+
+                // Calculate center, angle, and size
+                const centerX = (rEye.x + lEye.x) / 2;
+                const centerY = (rEye.y + lEye.y) / 2;
+                const dx = rEye.x - lEye.x;
+                const dy = rEye.y - lEye.y;
+                const angle = Math.atan2(dy, dx);
+                const eyeDist = Math.sqrt(dx * dx + dy * dy);
+
+                // 3D Angle Estimation
+                // Yaw: Turn Left/Right. Nose deviation from eye center X.
+                // Scaled by eyeDist to be size-invariant.
+                // Standard: Nose is centered. Deviation / Size gives angle.
+                // Range approx -1 to 1.
+                const yaw = (nPos.x - centerX) / (eyeDist * 0.5);
+
+                // Pitch: Tilt Up/Down. Nose deviation from eye center Y (corrected for roll).
+                // Simple approx: Nose Y vs Eye Y.
+                // We use a baseline ratio. Typically nose is below eyes.
+                // If distance decreases, Looking UP. If increases, Looking DOWN.
+                // Use perpendicular distance from nose to eye-line? Too complex for now.
+                // Simple: (Nose.y - Center.y) / EyeDist.
+                const pitchRaw = (nPos.y - centerY) / eyeDist;
+                // Baseline might be ~0.3 or 0.4. Subtract baseline to get deviation.
+                const pitch = pitchRaw - 0.4;
+
+                // Mask properties
+                const maskWidth = eyeDist * 2.8;
+                const maskHeight = eyeDist * 1.5;
+
+                // Use smoothing on the mask properties
+                const targetMask = {
+                    x: centerX, // Anchor at eye center or nose? Stick to eye center for stability.
+                    y: centerY,
+                    angle: angle,
+                    width: maskWidth,
+                    height: maskHeight,
+                    yaw: yaw,
+                    pitch: pitch
+                };
+
                 if (lastRect) {
-                    lastRect.x += (targetRect.x - lastRect.x) * smoothingFactor;
-                    lastRect.y += (targetRect.y - lastRect.y) * smoothingFactor;
-                    lastRect.width += (targetRect.width - lastRect.width) * smoothingFactor;
-                    lastRect.height += (targetRect.height - lastRect.height) * smoothingFactor;
+                    // Smooth interpolation
+                    lastRect.x += (targetMask.x - lastRect.x) * smoothingFactor;
+                    lastRect.y += (targetMask.y - lastRect.y) * smoothingFactor;
+                    lastRect.angle += (targetMask.angle - lastRect.angle) * smoothingFactor;
+                    lastRect.width += (targetMask.width - lastRect.width) * smoothingFactor;
+                    lastRect.height += (targetMask.height - lastRect.height) * smoothingFactor;
+                    lastRect.yaw += (targetMask.yaw - (lastRect.yaw || 0)) * smoothingFactor;
+                    lastRect.pitch += (targetMask.pitch - (lastRect.pitch || 0)) * smoothingFactor;
                     persistenceFrames = maxPersistence;
                 } else {
-                    lastRect = targetRect;
+                    lastRect = targetMask;
                     persistenceFrames = maxPersistence;
                 }
 
-                drawFaceRect(lastRect, false);
+                drawProceduralMask(lastRect, false);
 
             } else {
                 // No face detected
                 if (persistenceFrames > 0 && lastRect) {
                     persistenceFrames--;
-                    drawFaceRect(lastRect, true);
+                    drawProceduralMask(lastRect, true);
                 } else {
                     lastRect = null;
                 }
             }
 
-        }, 100); // Check every 100ms
+        }, 100);
 
-        function drawFaceRect(rect, isPersisting) {
+        function drawProceduralMask(mask, isPersisting) {
+            if (currentMaskIndex === 7) return; // Mask 7 is "None"
+
             context.save();
+            context.translate(mask.x, mask.y);
+            context.rotate(mask.angle);
+
+            // Apply 3D Perspective (Faux-3D)
+            const yawScale = Math.max(0.6, Math.cos(mask.yaw * 0.8));
+            context.scale(yawScale, 1.0);
+
+            // Opacity for persistence
             if (isPersisting) {
                 context.globalAlpha = 0.5;
-                context.setLineDash([5, 5]);
             } else {
                 context.globalAlpha = 1.0;
-                context.setLineDash([]);
             }
 
-            context.strokeStyle = '#00ff00';
-            context.lineWidth = 3;
-            context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+            const w = mask.width;
+            const h = mask.height;
+            const eyeDist = w / 2.8;
 
-            context.font = 'bold 16px Arial';
-            context.fillStyle = '#00ff00';
-            context.fillText('Humano', rect.x, rect.y - 10);
+            switch (currentMaskIndex) {
+                case 0: // Carnival
+                    drawCarnivalMask(context, w, h, eyeDist);
+                    break;
+                case 1: // Superhero
+                    drawSuperheroMask(context, w, h, eyeDist);
+                    break;
+                case 2: // Cyber
+                    drawCyberMask(context, w, h, eyeDist);
+                    break;
+                case 3: // Anonymous
+                    drawAnonymousMask(context, w, h, eyeDist);
+                    break;
+                case 4: // Top Hat
+                    drawTopHat(context, w, h, eyeDist);
+                    break;
+                case 5: // VR Glasses
+                    drawVRGlasses(context, w, h, eyeDist);
+                    break;
+                case 6: // Pixelated
+                    drawPixelatedFace(context, w, h, eyeDist);
+                    break;
+            }
+
             context.restore();
+        }
+
+        function drawCarnivalMask(ctx, w, h, eyeDist) {
+            const hw = w / 2;
+            const hh = h / 2;
+
+            // Gradient fill
+            const gradient = ctx.createLinearGradient(-hw, -hh, hw, hh);
+            gradient.addColorStop(0, '#FFD700'); // Gold
+            gradient.addColorStop(0.5, '#FF4500'); // OrangeRed
+            gradient.addColorStop(1, '#800080'); // Purple
+
+            ctx.fillStyle = gradient;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 5;
+            ctx.shadowOffsetY = 5;
+
+            ctx.beginPath();
+            ctx.moveTo(-hw, -hh * 0.2);
+            ctx.quadraticCurveTo(-hw * 0.5, -hh, 0, -hh * 0.2);
+            ctx.quadraticCurveTo(hw * 0.5, -hh, hw, -hh * 0.2);
+            ctx.quadraticCurveTo(hw, hh, hw * 0.2, hh * 0.5);
+            ctx.quadraticCurveTo(0, hh, -hw * 0.2, hh * 0.5);
+            ctx.quadraticCurveTo(-hw, hh, -hw, -hh * 0.2);
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.stroke();
+
+            // Eye holes
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.ellipse(-eyeDist * 0.5, 0, w * 0.12, h * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(eyeDist * 0.5, 0, w * 0.12, h * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawSuperheroMask(ctx, w, h, eyeDist) {
+            const hw = w / 2;
+            const hh = h / 2;
+
+            ctx.fillStyle = '#D91E18'; // Red
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 5;
+
+            ctx.beginPath();
+            // Sharper, angular shape
+            ctx.moveTo(-hw, -hh * 0.2);
+            ctx.lineTo(-hw * 0.4, -hh * 0.8); // Pointy top left
+            ctx.lineTo(0, -hh * 0.2);
+            ctx.lineTo(hw * 0.4, -hh * 0.8); // Pointy top right
+            ctx.lineTo(hw, -hh * 0.2);
+            ctx.lineTo(hw * 0.8, hh * 0.5);
+            ctx.lineTo(0, hh * 0.2);
+            ctx.lineTo(-hw * 0.8, hh * 0.5);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#000000';
+            ctx.stroke();
+
+            // Eye holes
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            // Angular eyes
+            ctx.moveTo(-eyeDist * 0.5 - w * 0.1, 0);
+            ctx.lineTo(-eyeDist * 0.5, -h * 0.15);
+            ctx.lineTo(-eyeDist * 0.5 + w * 0.1, 0);
+            ctx.lineTo(-eyeDist * 0.5, h * 0.15);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(eyeDist * 0.5 - w * 0.1, 0);
+            ctx.lineTo(eyeDist * 0.5, -h * 0.15);
+            ctx.lineTo(eyeDist * 0.5 + w * 0.1, 0);
+            ctx.lineTo(eyeDist * 0.5, h * 0.15);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawCyberMask(ctx, w, h, eyeDist) {
+            const hw = w / 2;
+            const hh = h / 2;
+
+            ctx.strokeStyle = '#00FF00'; // Neon Green
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#00FF00';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = 'rgba(0, 20, 0, 0.7)'; // Semi-transparent dark
+
+            ctx.beginPath();
+            // Digital/Blocky shape
+            ctx.moveTo(-hw, 0);
+            ctx.lineTo(-hw * 0.8, -hh * 0.6);
+            ctx.lineTo(-hw * 0.2, -hh * 0.6);
+            ctx.lineTo(0, -hh * 0.2);
+            ctx.lineTo(hw * 0.2, -hh * 0.6);
+            ctx.lineTo(hw * 0.8, -hh * 0.6);
+            ctx.lineTo(hw, 0);
+            ctx.lineTo(hw * 0.8, hh * 0.6);
+            ctx.lineTo(-hw * 0.8, hh * 0.6);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // HUD Lines
+            ctx.beginPath();
+            ctx.moveTo(-hw * 1.2, 0);
+            ctx.lineTo(hw * 1.2, 0);
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Eye holes (Rectangular)
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-eyeDist * 0.5 - w * 0.1, -h * 0.1, w * 0.2, h * 0.2);
+            ctx.fillRect(eyeDist * 0.5 - w * 0.1, -h * 0.1, w * 0.2, h * 0.2);
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawAnonymousMask(ctx, w, h, eyeDist) {
+            const hw = w / 1.8;
+            const hh = h; // Taller
+            ctx.fillStyle = '#F0F0F0'; // Porcelain White
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 10;
+
+            // Scaled coords
+            const sc = w / 100;
+
+            // Face Shape
+            ctx.beginPath();
+            ctx.ellipse(0, hh * 0.1, hw, hh * 0.85, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mustache
+            ctx.lineWidth = 3 * sc;
+            ctx.strokeStyle = '#000';
+            ctx.beginPath();
+            // Left stache
+            ctx.moveTo(0, hh * 0.2);
+            ctx.quadraticCurveTo(-hw * 0.5, hh * 0.1, -hw * 0.7, hh * 0.3);
+            ctx.quadraticCurveTo(-hw * 0.5, hh * 0.25, 0, hh * 0.25);
+            // Right stache
+            ctx.moveTo(0, hh * 0.2);
+            ctx.quadraticCurveTo(hw * 0.5, hh * 0.1, hw * 0.7, hh * 0.3);
+            ctx.quadraticCurveTo(hw * 0.5, hh * 0.25, 0, hh * 0.25);
+            ctx.stroke();
+            ctx.fillStyle = '#000';
+            ctx.fill();
+
+            // Goatee
+            ctx.beginPath();
+            ctx.moveTo(0, hh * 0.5);
+            ctx.lineTo(-hw * 0.1, hh * 0.8);
+            ctx.lineTo(hw * 0.1, hh * 0.8);
+            ctx.fill();
+
+            // Cheeks
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.3)';
+            ctx.beginPath();
+            ctx.arc(-hw * 0.6, hh * 0.1, w * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(hw * 0.6, hh * 0.1, w * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes (Slits)
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(-eyeDist * 0.5, -hh * 0.1, w * 0.1, h * 0.05, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(eyeDist * 0.5, -hh * 0.1, w * 0.1, h * 0.05, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawTopHat(ctx, w, h, eyeDist) {
+            const hw = w / 1.6; // Slightly wider
+            const hatY = -h * 0.9; // Lowered closer to eyes (was -1.5)
+            const hatH = h * 1.2;
+
+            ctx.fillStyle = '#111'; // Black
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 15;
+
+            // Crown
+            ctx.fillRect(-hw * 0.8, hatY - hatH, hw * 1.6, hatH);
+
+            // Band
+            ctx.fillStyle = '#800000'; // Dark Red
+            ctx.fillRect(-hw * 0.8, hatY - hatH * 0.2, hw * 1.6, hatH * 0.2);
+
+            // Brim
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.ellipse(0, hatY, hw, h * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawVRGlasses(ctx, w, h, eyeDist) {
+            const hw = w / 1.7;
+            const hh = h / 1.8;
+
+            // Main Box Gradient
+            const grad = ctx.createLinearGradient(-hw, -hh, hw, hh);
+            grad.addColorStop(0, '#222');
+            grad.addColorStop(0.5, '#444');
+            grad.addColorStop(1, '#111');
+
+            ctx.fillStyle = grad;
+            ctx.shadowColor = '#00FFFF';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            ctx.roundRect(-hw, -hh * 0.6, w * 1.2, h * 1.2, 15);
+            ctx.fill();
+
+            // Tech Lines / Grid
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-hw, 0);
+            ctx.lineTo(hw, 0);
+            ctx.moveTo(0, -hh);
+            ctx.lineTo(0, hh);
+            ctx.stroke();
+
+            // Power Light
+            ctx.fillStyle = '#00FF00';
+            ctx.shadowColor = '#00FF00';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(hw * 0.85, -hh * 0.4, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Blue glow visor strip
+            ctx.fillStyle = 'rgba(0, 200, 255, 0.5)';
+            ctx.fillRect(-hw * 0.8, -hh * 0.1, w * 0.9, h * 0.2);
+        }
+
+        function drawPixelatedFace(ctx, w, h, eyeDist) {
+            const pixelSize = 12; // Smaller pixels
+            const cols = Math.ceil(w / pixelSize);
+            const rows = Math.ceil((h * 2.2) / pixelSize);
+            const startX = -w / 2;
+            const startY = -h * 1.2;
+
+            ctx.globalAlpha = 0.6; // Transparency to show face behind
+
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    // Random skin tones approximation
+                    // R: 150-255, G: 100-200, B: 80-150
+                    const r = 150 + Math.random() * 105;
+                    const g = 100 + Math.random() * 100;
+                    const b = 80 + Math.random() * 70;
+
+                    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    ctx.fillRect(startX + i * pixelSize, startY + j * pixelSize, pixelSize, pixelSize);
+                }
+            }
+            ctx.globalAlpha = 1.0; // Reset
         }
     }
 

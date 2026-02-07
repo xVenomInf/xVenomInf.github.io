@@ -291,6 +291,21 @@ body.theme-tiktok .tiktok-avatar {
     margin: 0;
 }
 
+body.theme-tiktok .interaction-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    text-shadow: 1px 1px 2px black;
+    transition: transform 0.2s;
+}
+
+.interaction-item:active {
+    transform: scale(0.9);
+}
+
 body.theme-tiktok .tiktok-info {
     display: flex;
     flex-direction: column;
