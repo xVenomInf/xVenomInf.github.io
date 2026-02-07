@@ -12,6 +12,17 @@
 </head>
 
 <body>
+    <!-- Setup Overlay -->
+    <div id="setup-overlay" class="setup-overlay">
+        <div class="setup-card">
+            <div class="setup-avatar">🎭</div>
+            <h2>Iniciar Directo</h2>
+            <p>Introduce tu nombre de usuario para comenzar</p>
+            <input type="text" id="username-input" placeholder="Nombre de usuario..." maxlength="20">
+            <button id="start-stream-btn">Comenzar Live</button>
+        </div>
+    </div>
+
     <div class="overlay">
         <span>2.5k</span>
         <span>👤</span>
@@ -85,6 +96,7 @@
         </div>
     </div>
 
+    <script src="js/masks.js"></script>
     <script src="js/live.js"></script>
 </body>
 
