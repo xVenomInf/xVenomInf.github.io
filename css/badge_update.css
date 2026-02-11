@@ -1,0 +1,63 @@
+/* Badge Live Estilo Botón Rojo Suave */
+.live-badge {
+    background-color: rgba(254, 44, 85, 0.9);
+    /* TikTok Red */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    animation: livePulse 2s infinite ease-in-out;
+    margin-right: 0;
+    /* Gap handled by parent */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px rgba(254, 44, 85, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes livePulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(0.98);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#live-timer {
+    font-family: monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.separator {
+    opacity: 0.4;
+    font-size: 1.1rem;
+}
+
+/* Ajustar el contenedor para alinear items con buen gap */
+body.theme-tiktok .tiktok-viewers-rect {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    /* Más padding horizontal */
+    justify-content: center;
+    gap: 12px;
+    /* Espacio notable entre elementos */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}

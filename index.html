@@ -17,7 +17,9 @@
     <h1>Para-LoL Live</h1>
     <div>
         <label for="views">Cantidad de views:</label>
-        <input type="number" id="views" name="views" min="0">
+        <input type="number" id="views" name="views" min="0" value="150">
+        <br>
+        <input type="range" id="viewsRange" min="100" max="3000" value="150" style="width: 100%; margin-top: 10px;">
     </div>
     <div>
         <label for="language">Selecciona un idioma:</label>
@@ -34,12 +36,14 @@
             <option value="instagram">Instagram</option>
             <option value="facebook">Facebook</option>
             <option value="twitch">Twitch</option>
-            <option value="tiktok">TikTok</option>
+            <option value="tiktok" selected>TikTok</option>
         </select>
     </div>
     <div>
         <label for="time">Tiempo en directo (minutos):</label>
-        <input type="number" id="time" name="time" min="0">
+        <input type="number" id="time" name="time" min="0" value="60">
+        <br>
+        <input type="range" id="timeRange" min="1" max="300" value="60" style="width: 100%; margin-top: 10px;">
     </div>
 
     <a id="nextPageLink" href="live.html">Empezar directo</a>

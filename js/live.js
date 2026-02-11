@@ -30,16 +30,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // View Count Logic
-    const overlaySpan = document.querySelector('.overlay span');
+    const overlaySpan = document.querySelector('.overlay span'); // Standard overlay
     const urlParams = new URLSearchParams(window.location.search);
-    // Default to 2500 (2.5k) if not specified
-    let viewCount = parseInt(urlParams.get('views')) || 2500;
+    let viewCount = parseInt(urlParams.get('views')) || 150; // Default 150
+    const viewCountSpan = document.getElementById('view-count-text'); // TikTok specific
+
+    // Timer Logic
+    const requestedTimeMin = parseInt(urlParams.get('time')) || 60; // Default 60 min
+    const liveTimerSpan = document.getElementById('live-timer');
+    let totalSeconds = requestedTimeMin * 60;
+
+    function pad(val) { return val.toString().padStart(2, '0'); }
+
+    function updateTimerDisplay() {
+        if (!liveTimerSpan) return;
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+
+        let timeStr = `${pad(m)}:${pad(s)}`;
+        if (h > 0) {
+            timeStr = `${pad(h)}:${timeStr}`;
+        }
+        liveTimerSpan.textContent = timeStr;
+    }
+
+    // Start timer ticking up
+    setInterval(() => {
+        totalSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+    updateTimerDisplay();
 
     // Theme Logic
-    const template = urlParams.get('template') || 'instagram';
+    const template = urlParams.get('template') || 'tiktok';
     document.body.classList.add(`theme-${template}`);
-    const tiktokViewers = document.querySelector('.tiktok-viewers-rect span');
-
     // Slow mode indicator
     const slowModeIndicator = document.querySelector('.slow-mode-indicator');
 
@@ -74,30 +99,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         overlaySpan.textContent = formatViewCount(viewCount);
-        if (tiktokViewers) tiktokViewers.textContent = `👁️ ${formatViewCount(viewCount)}`;
+        if (viewCountSpan) viewCountSpan.textContent = formatViewCount(viewCount);
         updateSimulationState();
 
         function updateViewCount() {
             // Fluctuation logic based on magnitude
             let magnitude;
             if (viewCount >= 10000) {
-                // High views: fluctuate by 1000 to 5000
-                magnitude = Math.random() * (5000 - 1000) + 1000;
+                magnitude = 0.05; // 5% fluctuation for 10k+
             } else if (viewCount >= 1000) {
-                // Medium views: fluctuate by 100 to 500
-                magnitude = Math.random() * (500 - 100) + 100;
+                magnitude = 0.1; // 10% fluctuation for 1k-10k
+            } else if (viewCount >= 100) {
+                magnitude = 0.2; // 20% fluctuation for 100-1k
             } else {
-                // Low views: fluctuate by 10 to 50
-                magnitude = Math.random() * (50 - 10) + 10;
+                magnitude = 0.5; // 50% fluctuation for <100
             }
 
-            const direction = Math.random() < 0.5 ? -1 : 1;
-            const change = magnitude * direction;
-
+            const change = Math.floor(viewCount * magnitude * (Math.random() - 0.5) * 2); // +/- magnitude
             viewCount = Math.max(0, viewCount + change);
             const formatted = formatViewCount(viewCount);
             overlaySpan.textContent = formatted;
-            if (tiktokViewers) tiktokViewers.textContent = `👁️ ${formatted}`;
+            if (viewCountSpan) viewCountSpan.textContent = formatted; // Updated
 
             updateSimulationState();
         }
@@ -126,14 +148,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('video');
     const canvas = document.getElementById('overlay-canvas');
     const context = canvas ? canvas.getContext('2d') : null;
+    let currentFacingMode = "user"; // "user" or "environment"
+    let currentStream = null;
+
+    window.switchCamera = function () {
+        currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+        startCamera();
+    };
 
     async function startCamera() {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user" }
+                video: { facingMode: currentFacingMode }
             });
+            currentStream = stream;
             if (video) {
                 video.srcObject = stream;
+                // Mirror effect logic based on camera
+                if (currentFacingMode === "user") {
+                    video.style.transform = "scaleX(-1)";
+                } else {
+                    video.style.transform = "scaleX(1)";
+                }
+
                 video.onloadedmetadata = () => {
                     video.play();
                     startTracking();
@@ -141,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Error accessing the camera:", error);
+            alert("Error al acceder a la cámara: " + error.message);
         }
     }
 

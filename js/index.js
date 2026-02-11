@@ -1,3 +1,27 @@
+// Sync views input and slider
+const viewsInput = document.getElementById('views');
+const viewsRange = document.getElementById('viewsRange');
+
+viewsRange.addEventListener('input', () => {
+    viewsInput.value = viewsRange.value;
+});
+
+viewsInput.addEventListener('input', () => {
+    viewsRange.value = viewsInput.value;
+});
+
+// Sync time input and slider
+const timeInput = document.getElementById('time');
+const timeRange = document.getElementById('timeRange');
+
+timeRange.addEventListener('input', () => {
+    timeInput.value = timeRange.value;
+});
+
+timeInput.addEventListener('input', () => {
+    timeRange.value = timeInput.value;
+});
+
 document.getElementById('nextPageLink').addEventListener('click', (event) => {
     // Prevent default anchor behavior to allow processing parameters
     event.preventDefault();

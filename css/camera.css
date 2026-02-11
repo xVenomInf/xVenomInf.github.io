@@ -1,0 +1,33 @@
+/* Botón cambio de cámara */
+.camera-switch-btn {
+    position: absolute;
+    top: 60px;
+    /* Debajo del contador de views (ajustado) */
+    right: 15px;
+    /* Alineado a la derecha */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 20;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s;
+    user-select: none;
+}
+
+.camera-switch-btn:active {
+    transform: rotate(180deg);
+}
+
+/* Ajuste específico para TikTok theme si es necesario */
+body.theme-tiktok .camera-switch-btn {
+    top: 70px;
+    /* Un poco más abajo por el padding del header */
+}
