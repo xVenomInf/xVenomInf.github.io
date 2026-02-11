@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (startStreamBtn && setupOverlay) {
         startStreamBtn.addEventListener('click', () => {
+            // Attempt to go fullscreen
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(err => console.log("Fullscreen not allowed:", err));
+            } else if (docEl.webkitRequestFullscreen) { /* Safari */
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.msRequestFullscreen) { /* IE11 */
+                docEl.msRequestFullscreen();
+            }
+
             const name = usernameInput.value.trim() || "Streamer";
             if (tiktokUsernameDisplay) tiktokUsernameDisplay.textContent = name;
             setupOverlay.style.display = 'none';
