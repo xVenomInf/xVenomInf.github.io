@@ -78,7 +78,8 @@ class StreamStats {
     init() {
         // Parse URL params
         const urlParams = new URLSearchParams(window.location.search);
-        this.viewCount = parseInt(urlParams.get('views')) || 150;
+        this.viewCount = parseInt(urlParams.get('views')) || 0;
+        this.initialViewCount = this.viewCount; // Store minimum bound
         const requestedTimeMin = parseInt(urlParams.get('time')) || 60;
         this.totalSeconds = requestedTimeMin * 60;
 
@@ -91,8 +92,12 @@ class StreamStats {
             this.updateTimerDisplay();
         }
 
-        // View Count Loop
-        setInterval(() => this.updateViewCount(), 2000);
+        // View Count Loops
+        // 1. Small fluctuations every 3 seconds (Slower than before)
+        setInterval(() => this.updateViewCount(false), 3000);
+
+        // 2. Larger jumps every 15 seconds
+        setInterval(() => this.updateViewCount(true), 15000);
 
         // Hearts Loop
         this.heartLoop();
@@ -119,15 +124,38 @@ class StreamStats {
         this.timerElement.textContent = timeStr;
     }
 
-    updateViewCount() {
-        // Fluctuation logic
-        let magnitude = 0.5;
-        if (this.viewCount >= 10000) magnitude = 0.05;
-        else if (this.viewCount >= 1000) magnitude = 0.1;
-        else if (this.viewCount >= 100) magnitude = 0.2;
+    updateViewCount(isBigJump = false) {
+        // Fix: If 0, force start
+        if (this.viewCount === 0) {
+            this.viewCount = Math.floor(Math.random() * 5) + 1; // 1-5 starting views
+            this.updateViewDisplays();
+            this.state.update(this.viewCount);
+            return;
+        }
 
-        const change = Math.floor(this.viewCount * magnitude * (Math.random() - 0.5) * 2);
-        this.viewCount = Math.max(0, this.viewCount + change);
+        let changePercent;
+        if (isBigJump) {
+            // Big jump: 5-15% change
+            changePercent = (Math.random() * 0.10) + 0.05;
+        } else {
+            // Small fluctuation: 1-3% change
+            changePercent = (Math.random() * 0.02) + 0.01;
+        }
+
+        // 60% chance to go up, 40% to go down
+        const direction = Math.random() < 0.6 ? 1 : -1;
+
+        const change = Math.floor(this.viewCount * changePercent * direction);
+        let newCount = this.viewCount + change;
+
+        // Fix: Enforce minimum bound (initial input)
+        if (this.initialViewCount > 0 && newCount < this.initialViewCount) {
+            // Bounce back slightly above min
+            newCount = this.initialViewCount + Math.floor(Math.random() * (this.initialViewCount * 0.05));
+        }
+
+        // Never below 0
+        this.viewCount = Math.max(0, newCount);
 
         this.updateViewDisplays();
         this.state.update(this.viewCount);
