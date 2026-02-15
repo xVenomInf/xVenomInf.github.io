@@ -1,0 +1,30 @@
+/* Facebook Theme */
+body.theme-facebook {
+    background-color: #f0f2f5;
+    /* Light background for FB context if needed, though video covers it */
+}
+
+body.theme-facebook .chat-message {
+    background-color: rgba(255, 255, 255, 0.85);
+    color: #050505;
+    border-radius: 18px;
+    margin-bottom: 5px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-facebook .chat-name {
+    color: #1877f2;
+    /* Facebook Blue */
+    font-size: 0.8rem;
+}
+
+body.theme-facebook .chat-text {
+    font-size: 0.9rem;
+    color: #050505;
+}
+
+body.theme-facebook .overlay {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px 10px;
+    border-radius: 5px;
+}

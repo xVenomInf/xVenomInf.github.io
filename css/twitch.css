@@ -1,0 +1,30 @@
+/* Twitch Theme */
+body.theme-twitch .chat-message {
+    background-color: rgba(24, 24, 27, 0.9);
+    /* Twitch Dark */
+    border-radius: 4px;
+    /* More square */
+    padding: 4px 8px;
+    margin-bottom: 2px;
+}
+
+body.theme-twitch .chat-name {
+    color: #a970ff;
+    /* twitch purple default, logic to vary handled in JS ideally but static for now */
+    font-weight: 800;
+}
+
+body.theme-twitch .chat-text {
+    color: #efeff1;
+}
+
+body.theme-twitch .overlay span {
+    color: #a970ff;
+    /* Purple accents in overlay */
+    text-shadow: 1px 1px 0 #000;
+}
+
+body.theme-twitch .heart {
+    filter: hue-rotate(260deg);
+    /* Make hearts purple-ish */
+}

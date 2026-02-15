@@ -1,0 +1,453 @@
+/* Global Reset & Layout */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100dvh;
+    background-color: black;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    /* Mirror the camera for a selfie view */
+}
+
+#overlay-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 5;
+    /* Below UI overlay but above video */
+}
+
+/* Base Overlay */
+.overlay {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    color: white;
+    font-size: 1.5rem;
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    /* Increased gap for better spacing with heart counter */
+    z-index: 10;
+}
+
+.overlay span {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Chat Styling */
+.chat-overlay {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+    width: 300px;
+    /* Fixed width for consistency */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+}
+
+.slow-mode-indicator {
+    background-color: rgba(255, 165, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    margin-bottom: 5px;
+    align-self: flex-start;
+}
+
+.chat-message {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Slightly more transparent */
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chat-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.chat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-name {
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #e0e0e0;
+}
+
+.chat-text {
+    font-size: 0.95rem;
+}
+
+/* Chat Input Styling */
+.chat-input-container {
+    position: fixed;
+    bottom: 20px;
+    width: calc(100% - 60px);
+    /* Account for padding and margin */
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    padding: 8px 15px;
+    z-index: 100;
+}
+
+#chat-input {
+    background: transparent;
+    border: none;
+    color: white;
+    flex: 1;
+    font-size: 0.95rem;
+    padding: 5px 10px;
+    outline: none;
+    font-family: inherit;
+}
+
+#chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.emoji-btn,
+.send-btn {
+    cursor: pointer;
+    font-size: 1.2rem;
+    user-select: none;
+    transition: transform 0.1s;
+}
+
+.emoji-btn:active,
+.send-btn:active {
+    transform: scale(0.9);
+}
+
+.send-btn {
+    margin-left: 10px;
+    opacity: 0.8;
+}
+
+/* Floating Hearts */
+.floating-hearts-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 100px;
+    height: 300px;
+    pointer-events: none;
+    z-index: 5;
+    overflow: visible;
+}
+
+.heart {
+    position: absolute;
+    bottom: 0;
+    right: 20px;
+    /* Spawn from roughly same spot */
+    font-size: 24px;
+    color: #ff4d4d;
+    opacity: 0;
+    animation: floatUp 3s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        transform: translateY(0) scale(0.5);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-300px) scale(1.2);
+    }
+}
+
+/* Security Modal Styling */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.security-modal {
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    background: rgba(40, 40, 40, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px 20px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.modal-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.5rem;
+}
+
+.modal-header p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+.target-code {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 8px;
+    color: #fe2c55;
+    margin-bottom: 25px;
+}
+
+.modal-display {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.typed-code {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 12px;
+}
+
+.modal-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.modal-keypad button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-keypad button:active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-keypad .key-empty {
+    background: transparent;
+    cursor: default;
+}
+
+.modal-keypad .key-delete {
+    color: #ff4d4d;
+}
+
+.modal-vibrate {
+    animation: vibrate 0.3s linear;
+}
+
+@keyframes vibrate {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    50% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-5px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* Setup Overlay */
+.setup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #1a1a1a, #000);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.setup-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    padding: 2.5rem;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px rgba(255, 255, 255, 0.1) solid;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.setup-avatar {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.setup-card h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.setup-card p {
+    color: #ccc;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.setup-card input {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.setup-card input:focus {
+    border-color: #fe2c55;
+}
+
+.setup-card button {
+    width: 100%;
+    padding: 1rem;
+    background: #fe2c55;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+}
+
+.setup-card button:hover {
+    background: #e0244a;
+    transform: translateY(-2px);
+}
+
+/* Botón cambio de cámara - Transparente con SVG */
+.camera-switch-btn {
+    position: absolute;
+    top: 52px;
+    right: 18px;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    z-index: 25;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+}
+
+.camera-switch-btn svg {
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.camera-switch-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.camera-switch-btn:active {
+    transform: rotate(180deg) scale(0.9);
+}

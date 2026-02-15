@@ -8,8 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="manifest.json">
+
     <title>Live</title>
+    <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/live.css">
     <!-- TensorFlow.js and BlazeFace -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -21,8 +22,8 @@
     <div id="setup-overlay" class="setup-overlay">
         <div class="setup-card">
             <div class="setup-avatar">🎭</div>
-            <h2>Iniciar Directo</h2>
-            <p>Introduce tu nombre de usuario para comenzar</p>
+            <h2 id="setup-title">Iniciar Directo</h2>
+            <p id="setup-desc">Introduce tu nombre de usuario para comenzar</p>
             <input type="text" id="username-input" placeholder="Nombre de usuario..." maxlength="20">
             <button id="start-stream-btn">Comenzar Live</button>
         </div>
@@ -51,15 +52,15 @@
             <div class="interactions">
                 <div class="interaction-item" onclick="switchMask()">
                     <span class="icon">🎭</span>
-                    <span class="label">Máscara</span>
+                    <span class="label" id="mask-label">Máscara</span>
                 </div>
             </div>
         </div>
-        <button class="tiktok-end-btn" onclick="confirmEndStream()">Finalizar</button>
+        <button class="tiktok-end-btn" onclick="confirmEndStream()" id="end-stream-btn">Finalizar</button>
     </div>
 
     <div class="tiktok-viewers-rect">
-        <div class="live-badge">LIVE</div>
+        <div class="live-badge" id="live-badge">LIVE</div>
         <span id="live-timer">00:00</span>
         <span class="separator">|</span>
         <span id="view-count-text">0</span>
@@ -75,7 +76,7 @@
     </div>
 
     <div class="chat-overlay">
-        <div class="slow-mode-indicator" style="display: none;">🐢 Modo lento activado</div>
+        <div class="slow-mode-indicator" id="slow-mode-indicator" style="display: none;">🐢 Modo lento activado</div>
         <!-- Chat messages will be appended here by JS -->
     </div>
 
@@ -90,8 +91,8 @@
         <div class="security-modal">
             <span class="modal-close" onclick="closeSecurityModal()">&times;</span>
             <div class="modal-header">
-                <h3>Finalizar Directo</h3>
-                <p>Escribe el código de seguridad para continuar:</p>
+                <h3 id="modal-title">Finalizar Directo</h3>
+                <p id="modal-desc">Escribe el código de seguridad para continuar:</p>
             </div>
             <div class="modal-display">
                 <div id="typed-code-display" class="typed-code"></div>
@@ -113,6 +114,9 @@
         </div>
     </div>
 
+    <script src="js/translations.js"></script>
+    <script src="js/chat_data.js"></script>
+    <script src="js/common.js"></script>
     <script src="js/masks.js"></script>
     <script src="js/live.js"></script>
 </body>

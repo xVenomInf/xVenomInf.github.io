@@ -8,21 +8,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="manifest.json">
+
     <title>Para-LoL Live</title>
     <link rel="stylesheet" href="css/index.css">
 </head>
 
 <body>
-    <h1>Para-LoL Live</h1>
+    <h1 id="title-text">Para-LoL Live</h1>
     <div>
-        <label for="views">Cantidad de views:</label>
+        <label for="views" id="label-views">Cantidad de views:</label>
         <input type="number" id="views" name="views" min="0" value="150">
         <br>
         <input type="range" id="viewsRange" min="100" max="3000" value="150" style="width: 100%; margin-top: 10px;">
     </div>
     <div>
-        <label for="language">Selecciona un idioma:</label>
+        <label for="language" id="label-language">Selecciona un idioma:</label>
         <select id="language" name="language">
             <option value="es">Español</option>
             <option value="en">Inglés</option>
@@ -31,7 +31,19 @@
         </select>
     </div>
     <div>
-        <label for="template">Plantilla:</label>
+        <label for="category" id="label-category">Categoría:</label>
+        <select id="category" name="category">
+            <option value="general" id="cat-general">General</option>
+            <option value="cars" id="cat-cars">Coches</option>
+            <option value="motos" id="cat-motos">Motos</option>
+            <option value="party" id="cat-party">Fiestas</option>
+            <option value="gaming" id="cat-gaming">Gaming</option>
+            <option value="fashion" id="cat-fashion">Moda</option>
+            <option value="food" id="cat-food">Comida</option>
+        </select>
+    </div>
+    <div>
+        <label for="template" id="label-template">Plantilla:</label>
         <select id="template" name="template">
             <option value="instagram">Instagram</option>
             <option value="facebook">Facebook</option>
@@ -40,7 +52,7 @@
         </select>
     </div>
     <div>
-        <label for="time">Tiempo en directo (minutos):</label>
+        <label for="time" id="label-time">Tiempo en directo (minutos):</label>
         <input type="number" id="time" name="time" min="0" value="60">
         <br>
         <input type="range" id="timeRange" min="1" max="300" value="60" style="width: 100%; margin-top: 10px;">
@@ -49,6 +61,7 @@
     <a id="nextPageLink" href="live.html">Empezar directo</a>
 
 
+    <script src="js/translations.js"></script>
     <script src="js/index.js"></script>
 </body>
 
