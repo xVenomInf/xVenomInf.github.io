@@ -2,6 +2,16 @@
 const viewsInput = document.getElementById('views');
 const viewsRange = document.getElementById('viewsRange');
 const languageSelect = document.getElementById('language');
+const themeSelect = document.getElementById('theme-selector');
+
+// Theme Switching
+if (themeSelect) {
+    themeSelect.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        document.body.setAttribute('data-theme', theme);
+        // Persist theme choice if desired, but for now just switching
+    });
+}
 
 // Language switching logic
 function updateLanguage(lang) {

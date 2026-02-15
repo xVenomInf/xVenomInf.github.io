@@ -10,55 +10,93 @@
     <meta name="theme-color" content="#000000">
 
     <title>Para-LoL Live</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/index.css">
 </head>
 
 <body>
-    <h1 id="title-text">Para-LoL Live</h1>
-    <div>
-        <label for="views" id="label-views">Cantidad de views:</label>
-        <input type="number" id="views" name="views" min="0" value="150">
-        <br>
-        <input type="range" id="viewsRange" min="100" max="3000" value="150" style="width: 100%; margin-top: 10px;">
-    </div>
-    <div>
-        <label for="language" id="label-language">Selecciona un idioma:</label>
-        <select id="language" name="language">
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
-            <option value="fr">Francés</option>
-            <option value="de">Alemán</option>
+    <div class="theme-selector-container">
+        <select id="theme-selector" class="glass-select theme-select">
+            <option value="default">Default 🟣</option>
+            <option value="cyberpunk">Cyberpunk 🤖</option>
+            <option value="sunset">Sunset 🌅</option>
+            <option value="ocean">Ocean 🌊</option>
+            <option value="forest">Forest 🌲</option>
+            <option value="minimal-light">Minimal Light ☀️</option>
+            <option value="candy">Candy 🍭</option>
+            <option value="monochrome">Monochrome 🦓</option>
+            <option value="midnight">Midnight 🌌</option>
+            <option value="retro">Retro 👾</option>
         </select>
-    </div>
-    <div>
-        <label for="category" id="label-category">Categoría:</label>
-        <select id="category" name="category">
-            <option value="general" id="cat-general">General</option>
-            <option value="cars" id="cat-cars">Coches</option>
-            <option value="motos" id="cat-motos">Motos</option>
-            <option value="party" id="cat-party">Fiestas</option>
-            <option value="gaming" id="cat-gaming">Gaming</option>
-            <option value="fashion" id="cat-fashion">Moda</option>
-            <option value="food" id="cat-food">Comida</option>
-        </select>
-    </div>
-    <div>
-        <label for="template" id="label-template">Plantilla:</label>
-        <select id="template" name="template">
-            <option value="instagram">Instagram</option>
-            <option value="facebook">Facebook</option>
-            <option value="twitch">Twitch</option>
-            <option value="tiktok" selected>TikTok</option>
-        </select>
-    </div>
-    <div>
-        <label for="time" id="label-time">Tiempo en directo (minutos):</label>
-        <input type="number" id="time" name="time" min="0" value="60">
-        <br>
-        <input type="range" id="timeRange" min="1" max="300" value="60" style="width: 100%; margin-top: 10px;">
     </div>
 
-    <a id="nextPageLink" href="live.html">Empezar directo</a>
+    <div class="background-animation"></div>
+    <div class="main-container">
+        <h1 id="title-text" class="glitch-effect">Para-LoL Live</h1>
+
+        <div class="glass-card">
+            <div class="input-group">
+                <label for="views" id="label-views">👁️ Cantidad de views</label>
+                <div class="range-container">
+                    <input type="number" id="views" name="views" min="0" value="150" class="glass-input">
+                    <input type="range" id="viewsRange" min="100" max="3000" value="150" class="glass-range">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="language" id="label-language">🌍 Selecciona un idioma</label>
+                <div class="select-wrapper">
+                    <select id="language" name="language" class="glass-select">
+                        <option value="es">Español 🇪🇸</option>
+                        <option value="en">Inglés 🇺🇸</option>
+                        <option value="fr">Francés 🇫🇷</option>
+                        <option value="de">Alemán 🇩🇪</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="category" id="label-category">🏷️ Categoría</label>
+                <div class="select-wrapper">
+                    <select id="category" name="category" class="glass-select">
+                        <option value="general" id="cat-general">General 💬</option>
+                        <option value="cars" id="cat-cars">Coches 🏎️</option>
+                        <option value="motos" id="cat-motos">Motos 🏍️</option>
+                        <option value="party" id="cat-party">Fiestas 🎉</option>
+                        <option value="gaming" id="cat-gaming">Gaming 🎮</option>
+                        <option value="fashion" id="cat-fashion">Moda 👗</option>
+                        <option value="food" id="cat-food">Comida 🍔</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="template" id="label-template">🎨 Plantilla</label>
+                <div class="select-wrapper">
+                    <select id="template" name="template" class="glass-select">
+                        <option value="instagram">Instagram 📸</option>
+                        <option value="facebook">Facebook 📘</option>
+                        <option value="twitch">Twitch 💜</option>
+                        <option value="tiktok" selected>TikTok 🎵</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="time" id="label-time">⏱️ Tiempo (min)</label>
+                <div class="range-container">
+                    <input type="number" id="time" name="time" min="0" value="60" class="glass-input">
+                    <input type="range" id="timeRange" min="1" max="300" value="60" class="glass-range">
+                </div>
+            </div>
+
+            <a id="nextPageLink" href="live.html" class="cta-button">
+                <span>🚀 Empezar directo</span>
+            </a>
+        </div>
+    </div>
 
 
     <script src="js/translations.js"></script>
