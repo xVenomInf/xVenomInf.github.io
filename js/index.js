@@ -79,3 +79,31 @@ document.getElementById('nextPageLink').addEventListener('click', (event) => {
     // Navigate to the target URL
     window.location.href = targetUrl;
 });
+
+// Particle System
+function createParticles() {
+    const particleCount = 30;
+    const body = document.body;
+
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+
+        // Random properties
+        const size = Math.random() * 5 + 2; // 2px to 7px
+        const left = Math.random() * 100; // 0% to 100%
+        const duration = Math.random() * 10 + 10; // 10s to 20s
+        const delay = Math.random() * 10; // 0s to 10s
+
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${left}%`;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `-${delay}s`; // Negative delay to start mid-animation
+
+        body.appendChild(particle);
+    }
+}
+
+// Init Particles
+createParticles();
